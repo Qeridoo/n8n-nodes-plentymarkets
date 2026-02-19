@@ -4,7 +4,7 @@ import type {
 	INodeProperties,
 } from 'n8n-workflow';
 
-export class PlentymarketsApiCredential implements ICredentialType {
+export class PlentymarketsApi implements ICredentialType {
 	name = 'plentymarketsApi';
 
 	displayName = 'Plentymarkets API';

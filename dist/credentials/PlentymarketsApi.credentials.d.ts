@@ -1,5 +1,5 @@
 import type { ICredentialDataDecryptedObject, ICredentialType, INodeProperties } from 'n8n-workflow';
-export declare class PlentymarketsApiCredential implements ICredentialType {
+export declare class PlentymarketsApi implements ICredentialType {
     name: string;
     displayName: string;
     documentationUrl: string;

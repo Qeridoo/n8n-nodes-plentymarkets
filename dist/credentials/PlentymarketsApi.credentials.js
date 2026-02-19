@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PlentymarketsApiCredential = void 0;
-class PlentymarketsApiCredential {
+exports.PlentymarketsApi = void 0;
+class PlentymarketsApi {
     constructor() {
         this.name = 'plentymarketsApi';
         this.displayName = 'Plentymarkets API';
@@ -81,5 +81,5 @@ class PlentymarketsApiCredential {
         return credentials;
     }
 }
-exports.PlentymarketsApiCredential = PlentymarketsApiCredential;
+exports.PlentymarketsApi = PlentymarketsApi;
 //# sourceMappingURL=PlentymarketsApi.credentials.js.map

@@ -6,7 +6,7 @@ const distDir = './dist/nodes';
 
 gulp.task('build:icons', function () {
 	return gulp
-		.src([path.join(srcDir, '**/*.svg')])
+		.src(['**/*.svg'], { cwd: srcDir })
 		.pipe(gulp.dest(distDir));
 });
 

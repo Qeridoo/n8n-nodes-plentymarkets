@@ -119,6 +119,11 @@ export class Plentymarkets implements INodeType {
 						description: 'Zahlungen verwalten - Payments',
 					},
 					{
+						name: 'Varianten-Eigenschaft (Variation Property)',
+						value: 'variationProperty',
+						description: 'Eigenschaften an Varianten verknüpfen und Werte setzen - Variation property relations',
+					},
+					{
 						name: 'Versand (Shipping)',
 						value: 'shipping',
 						description: 'Versandinformationen - Shipping information',
@@ -1065,6 +1070,12 @@ export class Plentymarkets implements INodeType {
 						value: 'updateStock',
 						action: 'Update variation stock',
 					},
+					{
+						name: 'Suchen (Search)',
+						value: 'search',
+						description: 'Variante nach Nummer suchen inkl. Eigenschaften - Search by variation number',
+						action: 'Search variation by number',
+					},
 				],
 				default: 'getForItem',
 			},
@@ -1077,6 +1088,7 @@ export class Plentymarkets implements INodeType {
 				displayOptions: {
 					show: {
 						resource: ['variation'],
+						operation: ['create', 'get', 'getForItem', 'update', 'delete', 'setPrice', 'updateStock'],
 					},
 				},
 				default: 0,
@@ -1837,6 +1849,192 @@ export class Plentymarkets implements INodeType {
 				],
 			},
 
+			// Variation Search Parameters
+			{
+				displayName: 'Varianten-Nummer',
+				name: 'variationNumber',
+				type: 'string',
+				required: true,
+				displayOptions: {
+					show: {
+						resource: ['variation'],
+						operation: ['search'],
+					},
+				},
+				default: '',
+				description: 'Exakte Varianten-Nummer zum Suchen',
+			},
+
+			{
+				displayName: 'Zusätzliche Daten',
+				name: 'variationSearchWith',
+				type: 'multiOptions',
+				displayOptions: {
+					show: {
+						resource: ['variation'],
+						operation: ['search'],
+					},
+				},
+				options: [
+					{ name: 'Eigenschaften', value: 'Properties' },
+					{ name: 'Verkaufspreise', value: 'variationSalesPrices' },
+					{ name: 'Barcodes', value: 'variationBarcodes' },
+					{ name: 'Lagerbestand', value: 'stock' },
+					{ name: 'Bilder', value: 'images' },
+				],
+				default: ['Properties'],
+				description: 'Zusätzliche Relationen laden',
+			},
+
+			// ============================================================
+			// VARIATION PROPERTY OPERATIONS
+			// ============================================================
+			{
+				displayName: 'Operation',
+				name: 'operation',
+				type: 'options',
+				noDataExpression: true,
+				displayOptions: {
+					show: {
+						resource: ['variationProperty'],
+					},
+				},
+				options: [
+					{
+						name: 'Abrufen (Get)',
+						value: 'get',
+						description: 'Eigenschafts-Verknüpfung einer Variante abrufen',
+						action: 'Get variation property relation',
+					},
+					{
+						name: 'Verknüpfen (Link)',
+						value: 'link',
+						description: 'Eigenschaft mit Variante verknüpfen',
+						action: 'Link property to variation',
+					},
+					{
+						name: 'Wert setzen (Set Value)',
+						value: 'setValue',
+						description: 'Wert für eine verknüpfte Eigenschaft erstellen',
+						action: 'Set property relation value',
+					},
+					{
+						name: 'Wert aktualisieren (Update Value)',
+						value: 'updateValue',
+						description: 'Bestehenden Eigenschaftswert aktualisieren',
+						action: 'Update property relation value',
+					},
+					{
+						name: 'Verknüpfung lösen (Unlink)',
+						value: 'unlink',
+						description: 'Eigenschafts-Verknüpfung entfernen',
+						action: 'Unlink property from variation',
+					},
+				],
+				default: 'get',
+			},
+
+			// Variation Property: Varianten-ID (for get, link)
+			{
+				displayName: 'Varianten-ID',
+				name: 'vpVariationId',
+				type: 'number',
+				required: true,
+				displayOptions: {
+					show: {
+						resource: ['variationProperty'],
+						operation: ['get', 'link'],
+					},
+				},
+				default: 0,
+				description: 'Die ID der Variante',
+			},
+
+			// Variation Property: Eigenschafts-ID (for get, link)
+			{
+				displayName: 'Eigenschafts-ID (Property ID)',
+				name: 'vpPropertyId',
+				type: 'number',
+				required: true,
+				displayOptions: {
+					show: {
+						resource: ['variationProperty'],
+						operation: ['get', 'link'],
+					},
+				},
+				default: 0,
+				description: 'Die ID der Eigenschaft',
+			},
+
+			// Variation Property: Property Relation ID (for setValue, unlink)
+			{
+				displayName: 'Property-Relation-ID',
+				name: 'vpPropertyRelationId',
+				type: 'number',
+				required: true,
+				displayOptions: {
+					show: {
+						resource: ['variationProperty'],
+						operation: ['setValue', 'unlink'],
+					},
+				},
+				default: 0,
+				description: 'Die ID der Eigenschafts-Verknüpfung (aus GET oder Link-Antwort)',
+			},
+
+			// Variation Property: Relation Value ID (for updateValue)
+			{
+				displayName: 'Relation-Value-ID',
+				name: 'vpRelationValueId',
+				type: 'number',
+				required: true,
+				displayOptions: {
+					show: {
+						resource: ['variationProperty'],
+						operation: ['updateValue'],
+					},
+				},
+				default: 0,
+				description: 'Die ID des Eigenschaftswerts (relationValues[].id aus GET-Antwort)',
+			},
+
+			// Variation Property: Wert (for setValue, updateValue)
+			{
+				displayName: 'Wert (Value)',
+				name: 'vpValue',
+				type: 'string',
+				required: true,
+				displayOptions: {
+					show: {
+						resource: ['variationProperty'],
+						operation: ['setValue', 'updateValue'],
+					},
+				},
+				default: '',
+				description: 'Der Wert der Eigenschaft',
+			},
+
+			// Variation Property: Sprache (for setValue, updateValue)
+			{
+				displayName: 'Sprache (Language)',
+				name: 'vpLang',
+				type: 'options',
+				displayOptions: {
+					show: {
+						resource: ['variationProperty'],
+						operation: ['setValue', 'updateValue'],
+					},
+				},
+				options: [
+					{ name: 'Deutsch', value: 'DE' },
+					{ name: 'Englisch', value: 'EN' },
+					{ name: 'Französisch', value: 'FR' },
+					{ name: 'Sprachunabhängig', value: '0' },
+				],
+				default: 'DE',
+				description: 'Sprache des Eigenschaftswerts',
+			},
+
 			// ============================================================
 			// SHIPPING OPERATIONS
 			// ============================================================
@@ -2111,6 +2309,16 @@ export class Plentymarkets implements INodeType {
 
 				// VARIATION
 				else if (resource === 'variation') {
+					if (operation === 'search') {
+						const variationNumber = this.getNodeParameter('variationNumber', i) as string;
+						const withData = this.getNodeParameter('variationSearchWith', i, []) as string[];
+						const qs: IDataObject = { numberExact: variationNumber };
+						if (withData.length > 0) {
+							qs.with = withData.join(',');
+						}
+						responseData = await plentyRequest('GET', '/items/variations', undefined, qs);
+					} else {
+
 					const itemId = this.getNodeParameter('variationItemId', i) as number;
 
 					if (operation === 'create') {
@@ -2147,6 +2355,8 @@ export class Plentymarkets implements INodeType {
 						const quantity = this.getNodeParameter('stockQuantity', i) as number;
 						responseData = await plentyRequest('PUT', '/stocks', { variationId, warehouseId, quantity, reasonId: 301 });
 					}
+
+					} // close else (non-search operations)
 				}
 
 				// CATEGORY
@@ -2328,6 +2538,42 @@ export class Plentymarkets implements INodeType {
 					} else if (operation === 'getForOrder') {
 						const orderId = this.getNodeParameter('shippingOrderId', i) as number;
 						responseData = await plentyRequest('GET', `/orders/${orderId}/shipping`);
+					}
+				}
+
+				// VARIATION PROPERTY
+				else if (resource === 'variationProperty') {
+					if (operation === 'get') {
+						const variationId = this.getNodeParameter('vpVariationId', i) as number;
+						const propertyId = this.getNodeParameter('vpPropertyId', i) as number;
+						const qs: IDataObject = {
+							relationType: 'variation',
+							relationTargetId: variationId,
+							propertyId,
+						};
+						responseData = await plentyRequest('GET', '/properties/relations', undefined, qs);
+					} else if (operation === 'link') {
+						const variationId = this.getNodeParameter('vpVariationId', i) as number;
+						const propertyId = this.getNodeParameter('vpPropertyId', i) as number;
+						responseData = await plentyRequest('POST', '/properties/relations', {
+							propertyId,
+							relationTypeIdentifier: 'item',
+							relationTargetId: variationId,
+						});
+					} else if (operation === 'setValue') {
+						const propertyRelationId = this.getNodeParameter('vpPropertyRelationId', i) as number;
+						const value = this.getNodeParameter('vpValue', i) as string;
+						const lang = this.getNodeParameter('vpLang', i) as string;
+						const qs: IDataObject = { propertyRelationId };
+						responseData = await plentyRequest('POST', '/properties/relations/values', { lang, value }, qs);
+					} else if (operation === 'updateValue') {
+						const relationValueId = this.getNodeParameter('vpRelationValueId', i) as number;
+						const value = this.getNodeParameter('vpValue', i) as string;
+						const lang = this.getNodeParameter('vpLang', i) as string;
+						responseData = await plentyRequest('PUT', `/properties/relations/values/${relationValueId}`, { lang, value });
+					} else if (operation === 'unlink') {
+						const propertyRelationId = this.getNodeParameter('vpPropertyRelationId', i) as number;
+						responseData = await plentyRequest('DELETE', `/properties/relations/${propertyRelationId}`);
 					}
 				}
 

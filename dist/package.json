@@ -1,0 +1,13 @@
+{
+  "name": "n8n-nodes-plentymarkets",
+  "version": "1.0.0",
+  "description": "Custom Plentymarkets nodes for n8n",
+  "keywords": ["n8n-nodes", "plentymarkets"],
+  "license": "MIT",
+  "main": "nodes/Plentymarkets/Plentymarkets.node.js",
+  "n8n": {
+    "nodes": [
+      "nodes/Plentymarkets/Plentymarkets.node.js"
+    ]
+  }
+}

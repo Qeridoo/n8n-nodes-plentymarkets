@@ -12,7 +12,7 @@ export class Plentymarkets implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Plentymarkets',
 		name: 'plentymarkets',
-		icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0Ij48cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSIxMiIgZmlsbD0iI2Q0MDIxZCIvPjxwYXRoIGQ9Ik0yMiAxNmgxMGM2LjYyNyAwIDEyIDUuMzczIDEyIDEycy01LjM3MyAxMi0xMiAxMmgtNHY4aC02VjE2em02IDE4aDRjMy4zMTQgMCA2LTIuNjg2IDYtNnMtMi42ODYtNi02LTZoLTR2MTJ6IiBmaWxsPSJ3aGl0ZSIvPjwvc3ZnPg==',
+		iconUrl: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0Ij48cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSIxMiIgZmlsbD0iI2Q0MDIxZCIvPjxwYXRoIGQ9Ik0yMiAxNmgxMGM2LjYyNyAwIDEyIDUuMzczIDEyIDEycy01LjM3MyAxMi0xMiAxMmgtNHY4aC02VjE2em02IDE4aDRjMy4zMTQgMCA2LTIuNjg2IDYtNnMtMi42ODYtNi02LTZoLTR2MTJ6IiBmaWxsPSJ3aGl0ZSIvPjwvc3ZnPg==',
 		group: ['transform'],
 		version: 1,
 		subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',

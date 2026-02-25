@@ -2495,11 +2495,33 @@ export class Plentymarkets implements INodeType {
 
 				// DOCUMENT
 				else if (resource === 'document') {
+					const token = await getAccessToken();
 					if (operation === 'get') {
 						const documentId = this.getNodeParameter('documentId', i) as number;
 						responseData = await plentyRequest('GET', `/orders/documents/${documentId}`);
 						if (responseData && responseData.id) {
 							responseData.downloadUrl = `${baseUrl}/rest/documents/${responseData.id}`;
+							responseData.accessToken = token;
+							// Download binary content
+							const fileBuffer = await this.helpers.httpRequest({
+								method: 'GET',
+								url: `${baseUrl}/rest/documents/${responseData.id}`,
+								headers: { Authorization: `Bearer ${token}` },
+								encoding: 'arraybuffer',
+							});
+							const fileName =
+								(responseData.path as string || '').split('/').pop() || `document_${responseData.id}.pdf`;
+							const binaryData = await this.helpers.prepareBinaryData(
+								Buffer.from(fileBuffer as ArrayBuffer),
+								fileName,
+								'application/pdf',
+							);
+							const executionData = this.helpers.constructExecutionMetaData(
+								[{ json: responseData, binary: { data: binaryData } }],
+								{ itemData: { item: i } },
+							);
+							returnData.push(...executionData);
+							continue;
 						}
 					} else if (operation === 'getForOrder') {
 						const orderId = this.getNodeParameter('documentOrderId', i) as number;
@@ -2508,6 +2530,7 @@ export class Plentymarkets implements INodeType {
 							responseData = responseData.map((doc: IDataObject) => ({
 								...doc,
 								downloadUrl: doc.id ? `${baseUrl}/rest/documents/${doc.id}` : undefined,
+								accessToken: token,
 							}));
 						}
 					} else if (operation === 'create') {

@@ -2327,11 +2327,24 @@ class Plentymarkets {
                     }
                 }
                 else if (resource === 'document') {
+                    const token = await getAccessToken();
                     if (operation === 'get') {
                         const documentId = this.getNodeParameter('documentId', i);
                         responseData = await plentyRequest('GET', `/orders/documents/${documentId}`);
                         if (responseData && responseData.id) {
                             responseData.downloadUrl = `${baseUrl}/rest/documents/${responseData.id}`;
+                            responseData.accessToken = token;
+                            const fileBuffer = await this.helpers.httpRequest({
+                                method: 'GET',
+                                url: `${baseUrl}/rest/documents/${responseData.id}`,
+                                headers: { Authorization: `Bearer ${token}` },
+                                encoding: 'arraybuffer',
+                            });
+                            const fileName = (responseData.path || '').split('/').pop() || `document_${responseData.id}.pdf`;
+                            const binaryData = await this.helpers.prepareBinaryData(Buffer.from(fileBuffer), fileName, 'application/pdf');
+                            const executionData = this.helpers.constructExecutionMetaData([{ json: responseData, binary: { data: binaryData } }], { itemData: { item: i } });
+                            returnData.push(...executionData);
+                            continue;
                         }
                     }
                     else if (operation === 'getForOrder') {
@@ -2341,6 +2354,7 @@ class Plentymarkets {
                             responseData = responseData.map((doc) => ({
                                 ...doc,
                                 downloadUrl: doc.id ? `${baseUrl}/rest/documents/${doc.id}` : undefined,
+                                accessToken: token,
                             }));
                         }
                     }

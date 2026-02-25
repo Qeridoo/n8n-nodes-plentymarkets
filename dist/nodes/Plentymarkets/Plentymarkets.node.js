@@ -2330,10 +2330,19 @@ class Plentymarkets {
                     if (operation === 'get') {
                         const documentId = this.getNodeParameter('documentId', i);
                         responseData = await plentyRequest('GET', `/orders/documents/${documentId}`);
+                        if (responseData && responseData.id) {
+                            responseData.downloadUrl = `${baseUrl}/rest/documents/${responseData.id}`;
+                        }
                     }
                     else if (operation === 'getForOrder') {
                         const orderId = this.getNodeParameter('documentOrderId', i);
                         responseData = await plentyRequest('GET', `/orders/${orderId}/documents`);
+                        if (Array.isArray(responseData)) {
+                            responseData = responseData.map((doc) => ({
+                                ...doc,
+                                downloadUrl: doc.id ? `${baseUrl}/rest/documents/${doc.id}` : undefined,
+                            }));
+                        }
                     }
                     else if (operation === 'create') {
                         const orderId = this.getNodeParameter('documentOrderId', i);

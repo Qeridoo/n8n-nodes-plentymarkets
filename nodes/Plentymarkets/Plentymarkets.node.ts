@@ -2498,9 +2498,18 @@ export class Plentymarkets implements INodeType {
 					if (operation === 'get') {
 						const documentId = this.getNodeParameter('documentId', i) as number;
 						responseData = await plentyRequest('GET', `/orders/documents/${documentId}`);
+						if (responseData && responseData.id) {
+							responseData.downloadUrl = `${baseUrl}/rest/documents/${responseData.id}`;
+						}
 					} else if (operation === 'getForOrder') {
 						const orderId = this.getNodeParameter('documentOrderId', i) as number;
 						responseData = await plentyRequest('GET', `/orders/${orderId}/documents`);
+						if (Array.isArray(responseData)) {
+							responseData = responseData.map((doc: IDataObject) => ({
+								...doc,
+								downloadUrl: doc.id ? `${baseUrl}/rest/documents/${doc.id}` : undefined,
+							}));
+						}
 					} else if (operation === 'create') {
 						const orderId = this.getNodeParameter('documentOrderId', i) as number;
 						const documentType = this.getNodeParameter('documentType', i) as string;

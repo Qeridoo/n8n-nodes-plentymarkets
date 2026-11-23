@@ -129,6 +129,11 @@ export class Plentymarkets implements INodeType {
 						value: 'shipping',
 						description: 'Versandinformationen - Shipping information',
 					},
+					{
+						name: 'Notiz (Comment)',
+						value: 'comment',
+						description: 'Notizen an Aufträgen oder Kontakten anlegen - Comments',
+					},
 				],
 				default: 'order',
 			},
@@ -853,6 +858,18 @@ export class Plentymarkets implements INodeType {
 						default: '',
 					},
 					{
+						displayName: 'Hausnummer',
+						name: 'address2',
+						type: 'string',
+						default: '',
+					},
+					{
+						displayName: 'Adresszusatz',
+						name: 'address3',
+						type: 'string',
+						default: '',
+					},
+					{
 						displayName: 'PLZ',
 						name: 'postalCode',
 						type: 'string',
@@ -881,6 +898,116 @@ export class Plentymarkets implements INodeType {
 						name: 'email',
 						type: 'string',
 						default: '',
+					},
+				],
+			},
+
+			// ============================================================
+			// COMMENT OPERATIONS
+			// ============================================================
+			{
+				displayName: 'Operation',
+				name: 'operation',
+				type: 'options',
+				noDataExpression: true,
+				displayOptions: {
+					show: {
+						resource: ['comment'],
+					},
+				},
+				options: [
+					{
+						name: 'Erstellen',
+						value: 'create',
+						description: 'Notiz anlegen - Create comment',
+						action: 'Create a comment',
+					},
+				],
+				default: 'create',
+			},
+
+			{
+				displayName: 'Bezug',
+				name: 'commentReferenceType',
+				type: 'options',
+				displayOptions: {
+					show: {
+						resource: ['comment'],
+						operation: ['create'],
+					},
+				},
+				options: [
+					{ name: 'Auftrag (Order)', value: 'order' },
+					{ name: 'Kontakt (Contact)', value: 'contact' },
+				],
+				default: 'order',
+			},
+
+			{
+				displayName: 'Bezugs-ID',
+				name: 'commentReferenceValue',
+				type: 'number',
+				required: true,
+				displayOptions: {
+					show: {
+						resource: ['comment'],
+						operation: ['create'],
+					},
+				},
+				default: 0,
+				description: 'Auftrags- bzw. Kontakt-ID',
+			},
+
+			{
+				displayName: 'Text',
+				name: 'commentText',
+				type: 'string',
+				required: true,
+				typeOptions: {
+					rows: 4,
+				},
+				displayOptions: {
+					show: {
+						resource: ['comment'],
+						operation: ['create'],
+					},
+				},
+				default: '',
+				description: 'Notiztext. Zeilenumbrüche als <br> senden.',
+			},
+
+			{
+				displayName: 'Für Kunden sichtbar',
+				name: 'commentIsVisibleForContact',
+				type: 'boolean',
+				displayOptions: {
+					show: {
+						resource: ['comment'],
+						operation: ['create'],
+					},
+				},
+				default: false,
+			},
+
+			{
+				displayName: 'Zusätzliche Felder',
+				name: 'commentAdditionalFields',
+				type: 'collection',
+				placeholder: 'Feld hinzufügen',
+				default: {},
+				displayOptions: {
+					show: {
+						resource: ['comment'],
+						operation: ['create'],
+					},
+				},
+				options: [
+					{
+						displayName: 'Benutzer-ID',
+						name: 'userId',
+						type: 'number',
+						default: 0,
+						description: 'Verfasser der Notiz. Leer = API-Benutzer aus den Zugangsdaten.',
 					},
 				],
 			},
@@ -2106,6 +2233,7 @@ export class Plentymarkets implements INodeType {
 		}
 
 		let accessToken: string | null = null;
+		let apiUserId: number | null = null;
 
 		const getAccessToken = async (): Promise<string> => {
 			if (accessToken) return accessToken;
@@ -2120,6 +2248,7 @@ export class Plentymarkets implements INodeType {
 				json: true,
 			});
 			accessToken = loginResponse.accessToken;
+			apiUserId = loginResponse.user_id ?? loginResponse.userId ?? null;
 			return accessToken as string;
 		};
 
@@ -2538,6 +2667,26 @@ export class Plentymarkets implements INodeType {
 						const orderId = this.getNodeParameter('documentOrderId', i) as number;
 						const documentType = this.getNodeParameter('documentType', i) as string;
 						responseData = await plentyRequest('POST', `/orders/${orderId}/documents`, { type: documentType });
+					}
+				}
+
+				// COMMENT
+				else if (resource === 'comment') {
+					if (operation === 'create') {
+						const body: IDataObject = {
+							referenceType: this.getNodeParameter('commentReferenceType', i) as string,
+							referenceValue: this.getNodeParameter('commentReferenceValue', i) as number,
+							text: this.getNodeParameter('commentText', i) as string,
+							isVisibleForContact: this.getNodeParameter('commentIsVisibleForContact', i, false) as boolean,
+						};
+						const additional = this.getNodeParameter('commentAdditionalFields', i, {}) as IDataObject;
+						let userId = additional.userId as number | undefined;
+						if (!userId) {
+							await getAccessToken();
+							userId = apiUserId ?? undefined;
+						}
+						if (userId) body.userId = userId;
+						responseData = await plentyRequest('POST', '/comments', body);
 					}
 				}
 

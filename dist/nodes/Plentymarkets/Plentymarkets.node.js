@@ -116,6 +116,11 @@ class Plentymarkets {
                             value: 'shipping',
                             description: 'Versandinformationen - Shipping information',
                         },
+                        {
+                            name: 'Notiz (Comment)',
+                            value: 'comment',
+                            description: 'Notizen an Aufträgen oder Kontakten anlegen - Comments',
+                        },
                     ],
                     default: 'order',
                 },
@@ -795,6 +800,18 @@ class Plentymarkets {
                             default: '',
                         },
                         {
+                            displayName: 'Hausnummer',
+                            name: 'address2',
+                            type: 'string',
+                            default: '',
+                        },
+                        {
+                            displayName: 'Adresszusatz',
+                            name: 'address3',
+                            type: 'string',
+                            default: '',
+                        },
+                        {
                             displayName: 'PLZ',
                             name: 'postalCode',
                             type: 'string',
@@ -823,6 +840,107 @@ class Plentymarkets {
                             name: 'email',
                             type: 'string',
                             default: '',
+                        },
+                    ],
+                },
+                {
+                    displayName: 'Operation',
+                    name: 'operation',
+                    type: 'options',
+                    noDataExpression: true,
+                    displayOptions: {
+                        show: {
+                            resource: ['comment'],
+                        },
+                    },
+                    options: [
+                        {
+                            name: 'Erstellen',
+                            value: 'create',
+                            description: 'Notiz anlegen - Create comment',
+                            action: 'Create a comment',
+                        },
+                    ],
+                    default: 'create',
+                },
+                {
+                    displayName: 'Bezug',
+                    name: 'commentReferenceType',
+                    type: 'options',
+                    displayOptions: {
+                        show: {
+                            resource: ['comment'],
+                            operation: ['create'],
+                        },
+                    },
+                    options: [
+                        { name: 'Auftrag (Order)', value: 'order' },
+                        { name: 'Kontakt (Contact)', value: 'contact' },
+                    ],
+                    default: 'order',
+                },
+                {
+                    displayName: 'Bezugs-ID',
+                    name: 'commentReferenceValue',
+                    type: 'number',
+                    required: true,
+                    displayOptions: {
+                        show: {
+                            resource: ['comment'],
+                            operation: ['create'],
+                        },
+                    },
+                    default: 0,
+                    description: 'Auftrags- bzw. Kontakt-ID',
+                },
+                {
+                    displayName: 'Text',
+                    name: 'commentText',
+                    type: 'string',
+                    required: true,
+                    typeOptions: {
+                        rows: 4,
+                    },
+                    displayOptions: {
+                        show: {
+                            resource: ['comment'],
+                            operation: ['create'],
+                        },
+                    },
+                    default: '',
+                    description: 'Notiztext. Zeilenumbrüche als <br> senden.',
+                },
+                {
+                    displayName: 'Für Kunden sichtbar',
+                    name: 'commentIsVisibleForContact',
+                    type: 'boolean',
+                    displayOptions: {
+                        show: {
+                            resource: ['comment'],
+                            operation: ['create'],
+                        },
+                    },
+                    default: false,
+                },
+                {
+                    displayName: 'Zusätzliche Felder',
+                    name: 'commentAdditionalFields',
+                    type: 'collection',
+                    placeholder: 'Feld hinzufügen',
+                    default: {},
+                    displayOptions: {
+                        show: {
+                            resource: ['comment'],
+                            operation: ['create'],
+                        },
+                    },
+                    options: [
+                        {
+                            displayName: 'Benutzer-ID',
+                            name: 'userId',
+                            type: 'number',
+                            default: 0,
+                            description: 'Verfasser der Notiz. Leer = API-Benutzer aus den Zugangsdaten.',
                         },
                     ],
                 },
@@ -1926,7 +2044,9 @@ class Plentymarkets {
             });
         }
         let accessToken = null;
+        let apiUserId = null;
         const getAccessToken = async () => {
+            var _a, _b;
             if (accessToken)
                 return accessToken;
             const loginResponse = await this.helpers.httpRequest({
@@ -1939,6 +2059,7 @@ class Plentymarkets {
                 json: true,
             });
             accessToken = loginResponse.accessToken;
+            apiUserId = (_b = (_a = loginResponse.user_id) !== null && _a !== void 0 ? _a : loginResponse.userId) !== null && _b !== void 0 ? _b : null;
             return accessToken;
         };
         const plentyRequest = async (method, endpoint, body, qs) => {
@@ -2363,6 +2484,25 @@ class Plentymarkets {
                         const orderId = this.getNodeParameter('documentOrderId', i);
                         const documentType = this.getNodeParameter('documentType', i);
                         responseData = await plentyRequest('POST', `/orders/${orderId}/documents`, { type: documentType });
+                    }
+                }
+                else if (resource === 'comment') {
+                    if (operation === 'create') {
+                        const body = {
+                            referenceType: this.getNodeParameter('commentReferenceType', i),
+                            referenceValue: this.getNodeParameter('commentReferenceValue', i),
+                            text: this.getNodeParameter('commentText', i),
+                            isVisibleForContact: this.getNodeParameter('commentIsVisibleForContact', i, false),
+                        };
+                        const additional = this.getNodeParameter('commentAdditionalFields', i, {});
+                        let userId = additional.userId;
+                        if (!userId) {
+                            await getAccessToken();
+                            userId = apiUserId !== null && apiUserId !== void 0 ? apiUserId : undefined;
+                        }
+                        if (userId)
+                            body.userId = userId;
+                        responseData = await plentyRequest('POST', '/comments', body);
                     }
                 }
                 else if (resource === 'payment') {
